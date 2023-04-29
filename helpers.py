@@ -8,11 +8,16 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn    
 
-def reverb_scrapper(doc):
-    ul = doc.find("ul", class_="tiles tiles--four-wide-max")
-    li = ul.find_all("li", class_="tiles__tile")
+def reverb_scrapper(html):
+    print("Started scraping data from listing...")
+    doc = BeautifulSoup(html, "html.parser")
 
     item_list = []
+
+    ul = doc.find("ul", class_="tiles tiles--four-wide-max")
+    if ul is None:
+        return(item_list)
+    li = ul.find_all("li", class_="tiles__tile")
 
     for item in li:
         if len(item) == 1:
@@ -24,9 +29,12 @@ def reverb_scrapper(doc):
             
             item_list.append((name.text, price, currency, link, img))
 
+    print("Finished scraping.")
+
     return(item_list)
 
 def save_to_db(item_list, name):
+    print(f"Saving {name} listings to db...")
     with get_db_connection() as conn:
         for item in item_list:
             cursor = conn.cursor()
@@ -40,5 +48,20 @@ def save_to_db(item_list, name):
             
             cursor.execute("INSERT INTO auctions (item_name, title, price, currency, link, img_link, date) VALUES (?, ?, ?, ?, ?, ?, ?)", data)
             conn.commit()
+    
+    print("Finished saving succesfully.")
+    print("")
+
+def check_no_of_pages_reverb(html):
+    doc = BeautifulSoup(html, "html.parser")
+
+    print("Checking number of pages...")
+
+    links_list = []
+    links = doc.find_all("a", class_="pagination__button--number")
+    for link in links:
+        link = link["href"]
+        links_list.append(f"https://reverb.com/{link}")
+    return links_list
 
 
