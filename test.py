@@ -33,15 +33,22 @@ for link in links_list:
     # Checking if listing have multiple pages
     pages = check_no_of_pages_reverb(html)
     if len(pages) > 0:
+        print(f"Number of pages: {len(pages)}")
         for page in pages:
+            print(f"Scraping page {page}")
             chrome_driver.get(page)
             time.sleep(10)
             html = chrome_driver.execute_script("return document.body.innerHTML;")
             item_list = reverb_scrapper(html)
             save_to_db(item_list, name)
     else:
+        print(f"Scraping page {link[0]}")
         item_list = reverb_scrapper(html)
         save_to_db(item_list, name)
+
+chrome_driver.quit()
+
+print("Closing program.")
 
 
 # chrome_driver.get("https://reverb.com/marketplace?query=AKG%20C414&make=akg&product_type=pro-audio&condition=used&sort=published_at%7Cdesc")

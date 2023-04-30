@@ -46,10 +46,11 @@ def save_to_db(item_list, name):
 
             data = (name, item[0], float(item[1]), item[2], item[3], item[4], date.today())
             
+            print("Adding new listing.")
             cursor.execute("INSERT INTO auctions (item_name, title, price, currency, link, img_link, date) VALUES (?, ?, ?, ?, ?, ?, ?)", data)
             conn.commit()
     
-    print("Finished saving succesfully.")
+    print("Saved succesfully.")
     print("")
 
 def check_no_of_pages_reverb(html):
