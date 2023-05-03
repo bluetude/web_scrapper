@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 import time
 
 from helpers import scraper, get_db_connection, save_to_db, check_no_of_pages
@@ -23,12 +24,12 @@ with get_db_connection() as conn:
 
 # Scraping data from every link
 for link in links_list:
+    name = link[1]
+    site = link[2]
     chrome_driver.get(link[0])
     time.sleep(10)
     html = chrome_driver.execute_script("return document.body.innerHTML;")
-    name = link[1]
-    site = link[2]
-
+    
     print(f"Started scraping listings for {name}")
 
     # Checking if listing have multiple pages
@@ -41,11 +42,11 @@ for link in links_list:
             time.sleep(10)
             html = chrome_driver.execute_script("return document.body.innerHTML;")
             item_list = scraper(html, site)
-            save_to_db(item_list, name)
+            save_to_db(item_list, name, site)
     else:
         print(f"Scraping page {link[0]}")
         item_list = scraper(html, site)
-        save_to_db(item_list, name)
+        save_to_db(item_list, name, site)
 
 chrome_driver.quit()
 
