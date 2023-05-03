@@ -24,34 +24,39 @@ smtp_port = 587
 smtp_username = login
 smtp_password = password
 
-# create message
-message = MIMEMultipart("alternative")
-message["From"] = login
-message["Subject"] = f"GearDealz {date}"
+for sub in subscribers:
+    with get_db_connection() as conn:
+        data = conn.execute("SELECT auctions.* FROM auctions INNER JOIN user_items ON auctions.item_name = user_items.item_name WHERE user_items.user_id = ? AND auctions.date = ?", (sub["user_id"], date))
 
-# set up the Jinja2 environment
-env = Environment(loader=FileSystemLoader("."))
-template = env.get_template("mail_template.html")
+    # create message
+    message = MIMEMultipart("alternative")
+    message["From"] = login
+    message["To"] = sub["email"]
+    message["Subject"] = f"GearDealz {date}"
 
-# define the variables to pass to the template
-heading = f"GearDealz {date}"
-items = data
+    name = sub["name"]
 
-output = template.render(heading=heading, items=items)
+    # set up the Jinja2 environment
+    env = Environment(loader=FileSystemLoader("."))
+    template = env.get_template("mail_template.html")
 
-# add a plain-text part to the message
-text = f"GearDealz {date}"
-html = output
+    # define the variables to pass to the template
+    heading = f"{name}'s GearDealz {date}"
+    items = data
 
-part1 = MIMEText(text, 'plain')
-part2 = MIMEText(html, 'html')
-message.attach(part1)
-message.attach(part2)
-    
-with smtplib.SMTP(smtp_server, smtp_port) as server:
-    server.ehlo()
-    server.starttls()
-    server.login(smtp_username, smtp_password)
-    for sub in subscribers:
-        message["To"] = sub["email"]
+    output = template.render(heading=heading, items=items)
+
+    # add a plain-text part to the message
+    text = f"GearDealz {date}"
+    html = output
+
+    part1 = MIMEText(text, 'plain')
+    part2 = MIMEText(html, 'html')
+    message.attach(part1)
+    message.attach(part2)
+        
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.ehlo()
+        server.starttls()
+        server.login(smtp_username, smtp_password)
         server.sendmail(message["From"], message["To"], message.as_string())
