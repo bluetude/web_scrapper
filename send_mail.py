@@ -8,22 +8,25 @@ import sqlite3
 from datetime import date
 
 date = str(date.today())
-print(date)
     
 # Get data from DB
 with get_db_connection() as conn:
-    data = conn.execute(f"SELECT * FROM auctions WHERE date = ?", (date,))
+    data = conn.execute("SELECT * FROM auctions WHERE date = ?", (date,))
+    credentials = conn.execute("SELECT * FROM credentials").fetchall()
+    subscribers = conn.execute("SELECT * FROM subscribers").fetchall()
+
+login = credentials[0]["login"]
+password = credentials[0]["password"]
 
 # Setup SMTP server
 smtp_server = "smtp.gmail.com"
 smtp_port = 587
-smtp_username = "maksgeardealz@gmail.com"
-smtp_password = os.environ.get("GMAIL")
+smtp_username = login
+smtp_password = password
 
 # create message
 message = MIMEMultipart("alternative")
-message["From"] = "maksgeardealz@gmail.com"
-message["To"] = "marcin.barcz@icloud.com"
+message["From"] = login
 message["Subject"] = f"GearDealz {date}"
 
 # set up the Jinja2 environment
@@ -49,4 +52,6 @@ with smtplib.SMTP(smtp_server, smtp_port) as server:
     server.ehlo()
     server.starttls()
     server.login(smtp_username, smtp_password)
-    server.sendmail(message["From"], message["To"], message.as_string())
+    for sub in subscribers:
+        message["To"] = sub["email"]
+        server.sendmail(message["From"], message["To"], message.as_string())
