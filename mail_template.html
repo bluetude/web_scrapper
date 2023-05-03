@@ -9,14 +9,12 @@
             <th style="border: 1px solid black; padding: 5px;">NAME</th>
             <th style="border: 1px solid black; padding: 5px;">IMAGE</th> 
             <th style="border: 1px solid black; padding: 5px;">PRICE</th>
-            <th style="border: 1px solid black; padding: 5px;">LINK</th>
         </tr>
         {% for item in items %}
         <tr>
             <td style="border: 1px solid black; padding: 5px;">{{ item.item_name }}</td>
-            <td style="border: 1px solid black; padding: 5px;"><img src="{{ item.img_link }}" width="300" height="300"></td> 
+            <td style="border: 1px solid black; padding: 5px;"><div><p style="display: block;"><a href="{{ item.link }}"><img src="{{ item.img_link }}" width="300" height="300"></a></p><p style="display: block;">{{ item.title }}</p></div></td> 
             <td style="border: 1px solid black; padding: 5px;">{{ item.price }} {{ item.currency }}</td>
-            <td style="border: 1px solid black; padding: 5px;"><a href="{{ item.link }}">LINK</a></td>
         </tr>
         {% endfor %}
     </table>
