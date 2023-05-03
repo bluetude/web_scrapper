@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
 
-from helpers import reverb_scrapper, get_db_connection, save_to_db, check_no_of_pages_reverb
+from helpers import scraper, get_db_connection, save_to_db, check_no_of_pages
 
 
 # Initializing chromedriver with Selenium
@@ -16,9 +16,9 @@ chrome_driver = webdriver.Chrome(driver_path, options=chrome_options)
 links_list = []
 with get_db_connection() as conn:
     print("Getting list of links from db...")
-    links = conn.execute("SELECT link, name FROM reverb_links").fetchall()
+    links = conn.execute("SELECT link, name, site FROM links").fetchall()
     for row in links:
-        links_list.append((row["link"], row["name"]))
+        links_list.append((row["link"], row["name"], row["site"]))
     print("")
 
 # Scraping data from every link
@@ -27,11 +27,12 @@ for link in links_list:
     time.sleep(10)
     html = chrome_driver.execute_script("return document.body.innerHTML;")
     name = link[1]
+    site = link[2]
 
     print(f"Started scraping listings for {name}")
 
     # Checking if listing have multiple pages
-    pages = check_no_of_pages_reverb(html)
+    pages = check_no_of_pages(html, site)
     if len(pages) > 0:
         print(f"Number of pages: {len(pages)}")
         for page in pages:
@@ -39,29 +40,16 @@ for link in links_list:
             chrome_driver.get(page)
             time.sleep(10)
             html = chrome_driver.execute_script("return document.body.innerHTML;")
-            item_list = reverb_scrapper(html)
+            item_list = scraper(html, site)
             save_to_db(item_list, name)
     else:
         print(f"Scraping page {link[0]}")
-        item_list = reverb_scrapper(html)
+        item_list = scraper(html, site)
         save_to_db(item_list, name)
 
 chrome_driver.quit()
 
 print("Closing program.")
 
-
-# chrome_driver.get("https://reverb.com/marketplace?query=AKG%20C414&make=akg&product_type=pro-audio&condition=used&sort=published_at%7Cdesc")
-# time.sleep(10)
-# html = chrome_driver.execute_script("return document.body.innerHTML;")
-
-# chrome_driver.quit()
-
-# doc = BeautifulSoup(html, "html.parser")
-# with open ("index.html", "w") as file:
-#     file.write(str(doc))
-# name = "AKG C414"
-# item_list = reverb_scrapper(doc)
-# save_to_db(item_list, name)
 
 
