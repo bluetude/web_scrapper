@@ -69,6 +69,9 @@ def ebay_scraper(html):
 
     return(item_list)
 
+def olx_scraper(html):
+    return
+
 def save_to_db(item_list, name):
     print(f"Saving {name} listings to db...")
     with get_db_connection() as conn:
